@@ -5,4 +5,4 @@ source $(dirname $0)/lib/version
 
 cd $(dirname $0)/..
 
-operator-sdk build quay.io/submariner/submariner-operator:$VERSION --verbose
+operator-sdk build quay.io/submariner/submariner-operator:$VERSION --verbose --go-build-args "-ldflags -s -ldflags -w"
