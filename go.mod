@@ -56,6 +56,7 @@ replace (
 	// Pinned to v2.10.0 (kubernetes-1.14.1) so https://proxy.golang.org can
 	// resolve it correctly.
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v1.8.2-0.20190525122359-d20e84d0fb64
+	github.com/submariner-io/shipyard v0.0.0-20200416084120-97f62b652ea2 => github.com/submariner-io/shipyard v0.0.0-20200415131458-43e0c8dc8ea3
 )
 
 go 1.13
