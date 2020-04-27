@@ -262,10 +262,11 @@ func joinSubmarinerCluster(config *rest.Config, subctlData *datafile.SubctlData)
 
 	if subctlData.GlobalnetCidrRange == "" {
 		// Globalnet not enabled
-		err = checkOverlappingServiceCidr(globalNetworks)
+		err = checkOverlappingCidr(globalNetworks, "service")
 		status.End(err == nil)
 		exitOnError("Error validating overlapping ServiceCIDRs", err)
-		err = checkOverlappingClusterCidr(globalNetworks)
+		// err = checkOverlappingClusterCidr(globalNetworks)
+		err = checkOverlappingCidr(globalNetworks, "cluster")
 		status.End(err == nil)
 		exitOnError("Error validating overlapping ClusterCIDRs", err)
 	} else if globalNetworks[clusterID] == nil || globalNetworks[clusterID].GlobalCIDRs == nil || len(globalNetworks[clusterID].GlobalCIDRs) <= 0 {
@@ -293,27 +294,26 @@ func joinSubmarinerCluster(config *rest.Config, subctlData *datafile.SubctlData)
 	exitOnError("Error deploying Submariner", err)
 }
 
-func checkOverlappingServiceCidr(networks map[string]*globalnet.GlobalNetwork) error {
+func checkOverlappingCidr(networks map[string]*globalnet.GlobalNetwork, resource string) error {
+	var cidrlist []string
+	var cidr string
 	for k, v := range networks {
-		overlap, err := globalnet.IsOverlappingCIDR(v.ServiceCIDRs, serviceCIDR)
+		if resource == "cluster" {
+			cidrlist = v.ClusterCIDRs
+			cidr = clusterCIDR
+		} else if resource == " service" {
+			cidrlist = v.ServiceCIDRs
+			cidr = serviceCIDR
+		} else if resource == "globalnet" {
+			cidrlist = v.GlobalCIDRs
+			cidr = globalCIDR
+		}
+		overlap, err := globalnet.IsOverlappingCIDR(cidrlist, cidr)
 		if err != nil {
-			return fmt.Errorf("unable to validate overlapping ServiceCIDR: %s", err)
+			return fmt.Errorf("unable to validate overlapping %s: %s", cidrlist, err)
 		}
 		if overlap && k != clusterID {
-			return fmt.Errorf("invalid service CIDR: %s overlaps with cluster %s", serviceCIDR, k)
-		}
-	}
-	return nil
-}
-
-func checkOverlappingClusterCidr(networks map[string]*globalnet.GlobalNetwork) error {
-	for k, v := range networks {
-		overlap, err := globalnet.IsOverlappingCIDR(v.ClusterCIDRs, clusterCIDR)
-		if err != nil {
-			return fmt.Errorf("unable to validate overlapping ClusterCIDR: %s", err)
-		}
-		if overlap && k != clusterID {
-			return fmt.Errorf("invalid ClusterCIDR: %s overlaps with cluster %s", clusterCIDR, k)
+			return fmt.Errorf("invalid %s: %s overlaps with cluster %s", cidrlist, cidr, k)
 		}
 	}
 	return nil

@@ -32,6 +32,7 @@ type GlobalNetwork struct {
 	ServiceCIDRs []string
 	ClusterCIDRs []string
 	ClusterId    string
+	//Cidrlist     []string
 }
 
 type GlobalCIDR struct {
